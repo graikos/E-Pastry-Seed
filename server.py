@@ -22,8 +22,9 @@ class Server:
 		# get configuration settings from params.json
 		with open("params.json") as f:
 			Server.params = json.load(f)
-		self.SERVER_ADDR = (socket.gethostname(), Server.params["host"]["port"])
+		self.SERVER_ADDR = ("", Server.params["host"]["port"])
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 		# list holding alive nodes
 		self.nodes = []
@@ -43,7 +44,7 @@ class Server:
 				client.connect(node_addr)
 				# send poll request
 				header = {"type": "poll"}
-				client.sendall(utils.create_request(header, {}))
+				client.sendall(utils.create_request(header, {}).encode())
 				# receive response, will always be OK
 				client.recv(Server.params["net"]["data_size"])
 			except (socket.error, socket.timeout):
@@ -92,8 +93,12 @@ class Server:
 			# polling thread returned 1, meaning node is alive, so increment index
 			if data == 1:
 				self.current_node_index += 1
-				self.current_node_index %= len(self.nodes)
-
+				if len(self.nodes):
+					self.current_node_index %= len(self.nodes)
+				else:
+					self.current_node_index = 0
+				continue
+			
 			# if data is (IP, port, i) tuple, add (i == 1) or remove (i == 0) from self.nodes
 			if len(data) == 3:
 				# if node should be added
@@ -103,7 +108,10 @@ class Server:
 				else:
 					try:
 						self.nodes.remove(data[:2])
-						self.current_node_index %= len(self.nodes)
+						if len(self.nodes):
+							self.current_node_index %= len(self.nodes)
+						else:
+							self.current_node_index = 0
 					except ValueError:
 						pass
 				continue
@@ -166,3 +174,8 @@ class Server:
 		while True:
 			time.sleep(delay)
 			event_queue.put(0)
+
+
+if __name__ == "__main__":
+    server = Server()
+    server.run()
