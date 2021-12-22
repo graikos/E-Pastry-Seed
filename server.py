@@ -39,6 +39,7 @@ class Server:
 		:return: None
 		"""
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+			client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			client.settimeout(Server.params["net"]["timeout"])
 			try:
 				client.connect(node_addr)
@@ -76,6 +77,7 @@ class Server:
 		timer.start()
 
 		while True:
+			print(self.nodes)
 			data = event_queue.get()
 
 			# data == 0 is used for verifying if a random node is alive
