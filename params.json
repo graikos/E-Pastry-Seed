@@ -1,0 +1,10 @@
+{
+  "host": {
+    "port": 6969
+  },
+  "net": {
+    "data_size": 1024,
+    "timeout": 15,
+    "polling_delay": 5
+  }
+}
