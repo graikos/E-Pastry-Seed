@@ -6,5 +6,8 @@
     "data_size": 1024,
     "timeout": 15,
     "polling_delay": 5
+  },
+  "logging": {
+    "level": "INFO"
   }
 }
