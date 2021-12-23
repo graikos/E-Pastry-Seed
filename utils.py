@@ -6,7 +6,7 @@ from os import environ
 with open("params.json") as f:
 	params = json.load(f)
 
-logging.basicConfig(format="%(threadName)s-%(levelname)s:%(name)s: %(message)s", level=environ.get("LOGLEVEL", params["logging"]["level"]))
+logging.basicConfig(format="%(threadName)s-%(levelname)s: %(message)s", level=environ.get("LOGLEVEL", params["logging"]["level"]))
 log = logging.getLogger(__name__)
 
 log.info("Loaded params")
