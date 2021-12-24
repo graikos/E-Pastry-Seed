@@ -44,12 +44,12 @@ class Server:
 				client.sendall(utils.create_request(header, {}).encode())
 				# receive response, will always be OK
 				client.recv(utils.params["net"]["data_size"])
+				event_queue.put(1)
 				log.info("Node is alive")
 			except (socket.error, socket.timeout):
 				event_queue.put((node_addr[0], node_addr[1], 0))
 				log.info("Node is dead")
 
-			event_queue.put(1)
 
 
 	def run(self):
