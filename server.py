@@ -112,14 +112,14 @@ class Server:
 					conn = data[:2]
 					# only append if node is not already in list
 					if conn not in self.nodes:
-						log.info(f"Adding {conn} to queue")
 						self.nodes.append(conn)
+						log.info(f"Added {conn}")
 				# if node should be removed
 				else:
 					try:
 						conn = data[:2]
-						log.info(f"Removing {conn}")
 						self.nodes.remove(conn)
+						log.info(f"Removed {conn}")
 						if len(self.nodes):
 							self.current_node_index %= len(self.nodes)
 						else:
