@@ -6,7 +6,7 @@ from queue import Queue
 # project files
 import utils
 from utils import log
-from handlers import REQUEST_MAP
+from rpc_handlers import REQUEST_MAP
 
 class Server:
 	"""
@@ -26,13 +26,14 @@ class Server:
 		self.current_node_index = 0
 
 	@staticmethod
-	def poll_node(node_addr, event_queue):
+	def poll_node(node_details, event_queue):
 		"""
 		Polls node with given address, puts address in shared queue (to be removed) if node is dead, or 1 if it is alive
-		:param node_addr: (IP, port) of peer
+		:param node_details: (IP, port, ID) of node
 		:param event_queue: shared queue
 		:return: None
 		"""
+		node_addr = node_details[:2]
 		log.info(f"Polling node: {node_addr}")
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
 			client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -47,7 +48,7 @@ class Server:
 				event_queue.put(1)
 				log.info("Node is alive")
 			except (socket.error, socket.timeout):
-				event_queue.put((node_addr[0], node_addr[1], 0))
+				event_queue.put((node_addr[0], node_addr[1], node_details[2], 0))
 				log.info("Node is dead")
 
 
@@ -89,8 +90,8 @@ class Server:
 				if not len(self.nodes):
 					continue
 				# pick next node in list and start thread to poll it
-				node_addr = self.nodes[self.current_node_index]
-				polling_thread = threading.Thread(target=Server.poll_node, args=(node_addr, event_queue))
+				node_details = self.nodes[self.current_node_index]
+				polling_thread = threading.Thread(target=Server.poll_node, args=(node_details, event_queue))
 				polling_thread.name = "Poll"
 				polling_thread.daemon = True
 				polling_thread.start()
@@ -106,10 +107,10 @@ class Server:
 				continue
 			
 			# if data is (IP, port, i) tuple, add (i == 1) or remove (i == 0) from self.nodes
-			if len(data) == 3:
+			if len(data) == 4:
 				# if node should be added
-				if data[2]:
-					conn = data[:2]
+				conn = data[:3]
+				if data[3]:
 					# only append if node is not already in list
 					if conn not in self.nodes:
 						self.nodes.append(conn)
@@ -117,7 +118,6 @@ class Server:
 				# if node should be removed
 				else:
 					try:
-						conn = data[:2]
 						self.nodes.remove(conn)
 						log.info(f"Removed {conn}")
 						if len(self.nodes):

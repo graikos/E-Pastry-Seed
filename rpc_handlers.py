@@ -10,20 +10,29 @@ REQUEST_MAP = {
 
 STATUS_OK = 200
 STATUS_NOT_FOUND = 404
+STATUS_CONFLICT = 409
 
 def get_seed(body, server):
     """
-    Returns IP and PORT of random node
+    Returns IP and PORT of random node, or status_conflict if different node exists with the same ID
     :param body: the request body
     :param server: the Server object
     :return: response containing IP and PORT of seed
     """
     random_seed_choice = None
-    conn_addr = body["ip"], body["port"]
-    if conn_addr in server.nodes:
+
+    node_details = (body["ip"], body["port"], body["node_id"])
+
+    node_id_exists = body["node_id"] in (x[2] for x in server.nodes)
+
+    if node_details not in server.nodes and node_id_exists:
+        resp_header = {"status": STATUS_CONFLICT}
+        return utils.create_request(resp_header, {})
+
+    if node_id_exists:
         if len(server.nodes) > 1:
             random_seed_index = randint(0, len(server.nodes) - 1)
-            if server.nodes[random_seed_index] == conn_addr:
+            if server.nodes[random_seed_index][2] == body["node_id"]:
                 random_seed_choice = server.nodes[(random_seed_index + 1) % len(server.nodes)]
             else:
                 random_seed_choice = server.nodes[random_seed_index]
@@ -40,7 +49,7 @@ def get_seed(body, server):
         resp_body = {}
     else:
         status = STATUS_OK
-        resp_body = {"ip": random_seed_choice[0], "port": random_seed_choice[1]}
+        resp_body = {"ip": random_seed_choice[0], "port": random_seed_choice[1], "node_id": random_seed_choice[2]}
 
     resp_header = {"status": status, "type": "seed_node"}
     return utils.create_request(resp_header, resp_body)
@@ -53,7 +62,7 @@ def add_node(event_queue, body):
     :param body: the request body
     :return: response with OK status
     """
-    event_queue.put((body["ip"], body["port"], 1))
+    event_queue.put((body["ip"], body["port"], body["node_id"], 1))
 
     return utils.create_request({"type": "add", "status": STATUS_OK}, {})
 
@@ -65,7 +74,7 @@ def dead_node(event_queue, body):
     :param body: the request body
     :return: response with OK status
     """
-    event_queue.put((body["ip"], body["port"], 0))
+    event_queue.put((body["ip"], body["port"], body["node_id"], 0))
 
     header = {"status": STATUS_OK}
 
