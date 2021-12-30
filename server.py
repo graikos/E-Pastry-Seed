@@ -17,7 +17,7 @@ class Server:
 		"""
 		Initializes a new node
 		"""
-		self.SERVER_ADDR = ("", utils.params["host"]["port"])
+		self.SERVER_ADDR = (utils.get_ip(), utils.params["host"]["port"])
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 

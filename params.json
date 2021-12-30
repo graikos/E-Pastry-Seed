@@ -1,9 +1,9 @@
 {
   "host": {
-    "port": 6969
+    "port": 8000
   },
   "net": {
-    "data_size": 1024,
+    "data_size": 8192,
     "timeout": 15,
     "polling_delay": 5
   },
