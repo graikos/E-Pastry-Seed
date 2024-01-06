@@ -69,7 +69,9 @@ class Server:
                 event_queue.put(1)
                 log.info("Node is alive")
             except (socket.error, socket.timeout):
-                event_queue.put((node_addr[0], node_addr[1], node_details[2], 0))
+                event_queue.put(
+                    (node_addr[0], node_addr[1], node_details[2], None, None, 0)
+                )
                 log.info("Node is dead")
 
     def run(self):
