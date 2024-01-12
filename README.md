@@ -1,2 +1,2 @@
-# E-Chord-Seed
-Seed server for [E-Chord](https://github.com/notTypecast/E-Chord).
+# E-Pastry-Seed
+Seed server for [E-Pastry](https://github.com/graikos/E-Pastry).
